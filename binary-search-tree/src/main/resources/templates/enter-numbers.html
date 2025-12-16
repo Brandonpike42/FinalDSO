@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Search Tree Builder</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    .input-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 600;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    #tree-visualization {
+        margin-top: 30px;
+        display: none;
+    }
+
+    #tree-canvas {
+        width: 100%;
+        height: 500px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .tree-info {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 8px;
+    }
+
+    .error {
+        background: #fee;
+        color: #c33;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .node {
+        fill: #667eea;
+        stroke: #fff;
+        stroke-width: 2;
+    }
+
+    .node-text {
+        fill: white;
+        font-weight: bold;
+        font-size: 14px;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    .link {
+        fill: none;
+        stroke: #999;
+        stroke-width: 2;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>🌳 Binary Search Tree Builder</h1>
+    <p class="subtitle">Enter comma-separated numbers to build and visualize a binary search tree</p>
+
+    <div class="error" id="error-message"></div>
+
+    <div class="input-group">
+      <label for="numbers">Enter Numbers (comma-separated):</label>
+      <input type="text" id="numbers" placeholder="e.g., 50, 30, 70, 20, 40, 60, 80" />
+    </div>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="balanced" />
+      <label for="balanced">Create Balanced BST (Bonus Feature)</label>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-primary" onclick="processNumbers()">Submit</button>
+      <button class="btn-secondary" onclick="window.location.href='/previous-trees'">Show Previous Trees</button>
+    </div>
+  </div>
+
+  <div class="card" id="tree-visualization">
+    <h2>Tree Visualization</h2>
+    <svg id="tree-canvas"></svg>
+    <div class="tree-info" id="tree-info"></div>
+  </div>
+</div>
+
+<script>
+  function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => {
+          errorDiv.style.display = 'none';
+      }, 5000);
+  }
+
+  async function processNumbers() {
+      const numbers = document.getElementById('numbers').value;
+      const balanced = document.getElementById('balanced').checked;
+
+      if (!numbers.trim()) {
+          showError('Please enter at least one number');
+          return;
+      }
+
+      try {
+          const response = await fetch('/process-numbers', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `numbers=${encodeURIComponent(numbers)}&balanced=${balanced}`
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+              showError(data.error);
+              return;
+          }
+
+          visualizeTree(data.tree, data.inputNumbers, data.balanced);
+
+      } catch (error) {
+          showError('An error occurred while processing the numbers');
+          console.error(error);
+      }
+  }
+
+  function visualizeTree(tree, inputNumbers, balanced) {
+      const visualization = document.getElementById('tree-visualization');
+      const svg = document.getElementById('tree-canvas');
+      const info = document.getElementById('tree-info');
+
+      // Show visualization first so SVG has dimensions
+      visualization.style.display = 'block';
+
+      svg.innerHTML = '';
+
+      // Get dimensions with fallback and small delay to ensure rendering
+      setTimeout(() => {
+          const width = svg.getBoundingClientRect().width || 1000;
+          const height = 500;
+          svg.setAttribute('width', width);
+          svg.setAttribute('height', height);
+          svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+          if (!tree) {
+              info.innerHTML = '<strong>Empty tree</strong>';
+              return;
+          }
+
+          const nodeRadius = 25;
+          const levelHeight = 80;
+
+          function calculatePositions(node, depth = 0, xOffset = width / 2, xSpacing = width / 4) {
+              if (!node) return [];
+
+              const positions = [{
+                  value: node.value,
+                  x: xOffset,
+                  y: depth * levelHeight + 50
+              }];
+
+              if (node.left) {
+                  const leftPositions = calculatePositions(node.left, depth + 1, xOffset - xSpacing, xSpacing / 2);
+                  positions.push(...leftPositions);
+
+                  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                  line.setAttribute('x1', xOffset);
+                  line.setAttribute('y1', depth * levelHeight + 50);
+                  line.setAttribute('x2', xOffset - xSpacing);
+                  line.setAttribute('y2', (depth + 1) * levelHeight + 50);
+                  line.setAttribute('class', 'link');
+                  svg.appendChild(line);
+              }
+
+              if (node.right) {
+                  const rightPositions = calculatePositions(node.right, depth + 1, xOffset + xSpacing, xSpacing / 2);
+                  positions.push(...rightPositions);
+
+                  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                  line.setAttribute('x1', xOffset);
+                  line.setAttribute('y1', depth * levelHeight + 50);
+                  line.setAttribute('x2', xOffset + xSpacing);
+                  line.setAttribute('y2', (depth + 1) * levelHeight + 50);
+                  line.setAttribute('class', 'link');
+                  svg.appendChild(line);
+              }
+
+              return positions;
+          }
+
+          const positions = calculatePositions(tree);
+
+          positions.forEach(pos => {
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.setAttribute('cx', pos.x);
+              circle.setAttribute('cy', pos.y);
+              circle.setAttribute('r', nodeRadius);
+              circle.setAttribute('class', 'node');
+              svg.appendChild(circle);
+
+              const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              text.setAttribute('x', pos.x);
+              text.setAttribute('y', pos.y);
+              text.setAttribute('class', 'node-text');
+              text.textContent = pos.value;
+              svg.appendChild(text);
+          });
+
+          info.innerHTML = `
+              <strong>Input Numbers:</strong> ${inputNumbers.join(', ')}<br>
+              <strong>Tree Type:</strong> ${balanced ? 'Balanced BST' : 'Standard BST'}<br>
+              <strong>Node Count:</strong> ${positions.length}
+          `;
+      }, 100);
+  }
+
+  document.getElementById('numbers').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+          processNumbers();
+      }
+  });
+</script>
+</body>
+</html>

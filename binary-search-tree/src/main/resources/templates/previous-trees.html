@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Previous Trees</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .back-button {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .tree-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .tree-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .tree-id {
+        font-size: 18px;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .tree-date {
+        color: #999;
+        font-size: 14px;
+    }
+
+    .tree-content {
+        margin-top: 15px;
+    }
+
+    .tree-label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    .tree-data {
+        background: #f8f8f8;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-family: 'Courier New', monospace;
+        word-wrap: break-word;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-balanced {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-standard {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .no-records {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header-card">
+    <h1>📚 Previous Trees</h1>
+    <a href="/enter-numbers" class="back-button">← Back to Create New Tree</a>
+  </div>
+
+  <div th:if="${records.isEmpty()}" class="tree-card">
+    <div class="no-records">
+      <h2>No trees created yet</h2>
+      <p>Create your first binary search tree to see it here!</p>
+    </div>
+  </div>
+
+  <div th:each="record : ${records}" class="tree-card">
+    <div class="tree-header">
+      <div class="tree-id">Tree #<span th:text="${record.id}"></span></div>
+      <div class="tree-date" th:text="${#temporals.format(record.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
+    </div>
+
+    <div class="tree-content">
+      <div>
+                    <span class="badge" th:classappend="${record.balanced} ? 'badge-balanced' : 'badge-standard'"
+                          th:text="${record.balanced} ? 'Balanced BST' : 'Standard BST'"></span>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <div class="tree-label">Input Numbers:</div>
+        <div class="tree-data" th:text="${record.inputNumbers}"></div>
+      </div>
+
+      <div>
+        <div class="tree-label">Tree Structure (JSON):</div>
+        <div class="tree-data" th:text="${record.treeStructure}"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
